@@ -15,8 +15,7 @@ app.use(cors())
 //models
 const User = require('./models/Users')
 
-mongoose.connect('mongodb+srv://adriel5510:%40Driel1933@cluster0.7kg72rk.mongodb.net/Cluster0').then(()=>{
-// mongoose.connect('mongodb://localhost:27017/gteq').then(()=>{
+mongoose.connect(`mongodb+srv://${process.env.USER_DB}:${process.env.PASSWORD_DB}@cluster0.7kg72rk.mongodb.net/Cluster0`).then(()=>{
     app.listen(3000) 
     console.log("Conectou ao banco de dados!")
 }).catch((err)=> console.log(err))
@@ -109,7 +108,7 @@ app.post('/cadastro', async (req, res) => {
 
   app.post('/cadastroObras', async (req, res ) => {
     try{
-      const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, qtdBlocos, qtdAndares, qtdApartamentos, servicoPrestado, precoServico, descricaoObra } = req.body;
+      const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, servicoPrestado, precoServico, descricaoObra } = req.body;
 
       const newObra = new Obra({
         nomeObra,
@@ -118,17 +117,36 @@ app.post('/cadastro', async (req, res) => {
         numeroRua,
         complementoObra,
         tipoObra,
-        qtdBlocos,
-        qtdAndares,
-        qtdApartamentos,
         servicoPrestado,
         precoServico,
         descricaoObra,
       });
 
       await newObra.save();
+      res.json({id: newObra._id});
+    } catch {
+      res.status(500).json({message: 'Erro interno do servidor!'});
+    }
+  })
 
-      res.status(201).json({message: 'Obra cadastrada com Sucesso!'});
+  //Cadastro numero de Unidades
+
+  const NumerosObra = require('./models/NumerosObra')
+
+  app.post('/cadastroNumerosObra', async (req, res ) => {
+    try{
+      const { relObra, numeroBloco, numeroAndares, numeroUnidades } = req.body;
+
+      const newNumerosObra = new NumerosObra({
+        relObra,
+        numeroBloco,
+        numeroAndares,
+        numeroUnidades
+      });
+
+      await newNumerosObra.save();
+
+      res.status(201).json({message: 'Dados cadastrados com Sucesso!'});
     } catch {
       res.status(500).json({message: 'Erro interno do servidor!'});
     }
@@ -317,7 +335,7 @@ app.post('/cadastro', async (req, res) => {
         nivel: user.nivelUsuario,
       }
       const token = jwt.sign(usuario, 'secreto', { expiresIn: '24h' });
-      res.json({token, nivelUsuario: usuario.nivel});
+      res.json({token, nivelUsuario: usuario.nivel, userId: user._id});
     }
 
   })
@@ -364,7 +382,57 @@ app.post('/cadastro', async (req, res) => {
       }
       metaObra.valorMeta = valorMeta;
       await metaObra.save();
-      res.status(200).json({ message: 'Meta atualizada com sucesso', metaObra });
+      res.status(200).json({ message: 'Meta atualizada com sucesso'});
+    } catch (error) {
+      console.error('Erro ao atualizar a meta da obra:', error);
+      res.status(500).json({ message: 'Erro ao atualizar a meta da obra' });
+    }
+  });
+
+
+  //meta usuario
+
+  const MetaUser = require('./models/metaUser')
+
+  app.post('/metaUser', async (req, res)=>{
+    try{
+      const { valorMeta, relUser } = req.body;
+      const newMetaUser = new MetaUser({
+        valorMeta,
+        relUser,
+      });
+      await newMetaUser.save();
+      res.status(201).json({message: 'Meta cadastrado com Sucesso!'});
+    }catch{
+      res.status(500).json({message: 'Erro!'});
+    }
+  })
+
+
+
+  app.get('/metaUser/:relUser', async (req,res)=>{
+    try{
+      const {relUser} = req.params;
+      const metauser = await MetaUser.find({relUser: relUser});
+      res.json({ metaUser: metauser });
+    }catch{
+      res.json({message: 'Erro'})
+    }
+  })
+
+  
+  app.put('/metaUser/:id', async (req, res) => {
+    const { id } = req.params;
+    const { valorMeta } = req.body;
+  
+    try {
+      const metaUser = await MetaUser.findById(id);
+      if (!metaUser) {
+        return res.status(404).json({ message: 'Meta não encontrada' });
+      }
+      metaUser.valorMeta = valorMeta;
+      await metaUser.save();
+      res.status(200).json({ message: 'Meta atualizada com sucesso'});
     } catch (error) {
       console.error('Erro ao atualizar a meta da obra:', error);
       res.status(500).json({ message: 'Erro ao atualizar a meta da obra' });

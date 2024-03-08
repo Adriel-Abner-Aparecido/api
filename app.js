@@ -262,6 +262,7 @@ app.post('/cadastro', async (req, res) => {
     }
   })
 
+
   //Etapas
   const Etapas = require('./models/Etapas');
 
@@ -329,13 +330,14 @@ app.post('/cadastro', async (req, res) => {
       return res.status(404).json({message: 'Senha incorreta!'})
     }
 
-    if (user && bcrypt.compareSync(senhaUsuario, user.senhaUsuario)){
+    if (user && bcrypt.compareSync(senhaUsuario, user.senhaUsuario, user.nomeUsuario)){
       const usuario = {
         userId: user._id,
         nivel: user.nivelUsuario,
+        userName: user.nivelUsuario,
       }
       const token = jwt.sign(usuario, 'secreto', { expiresIn: '24h' });
-      res.json({token, nivelUsuario: usuario.nivel, userId: user._id});
+      res.json({token, nivelUsuario: usuario.nivel, userId: user._id, userName: user.nomeUsuario});
     }
 
   })

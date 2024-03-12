@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const NumerosObra = mongoose.model('NumerosObra', new mongoose.Schema({
-    relObra: String,
+    refObra: String,
     numeroBloco: String,
     numeroAndares: String,
     numeroUnidades: String,

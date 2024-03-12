@@ -135,10 +135,10 @@ app.post('/cadastro', async (req, res) => {
 
   app.post('/cadastroNumerosObra', async (req, res ) => {
     try{
-      const { relObra, numeroBloco, numeroAndares, numeroUnidades } = req.body;
+      const { refObra, numeroBloco, numeroAndares, numeroUnidades } = req.body;
 
       const newNumerosObra = new NumerosObra({
-        relObra,
+        refObra,
         numeroBloco,
         numeroAndares,
         numeroUnidades
@@ -149,6 +149,17 @@ app.post('/cadastro', async (req, res) => {
       res.status(201).json({message: 'Dados cadastrados com Sucesso!'});
     } catch {
       res.status(500).json({message: 'Erro interno do servidor!'});
+    }
+  })
+
+  //get Numeros obra
+  app.get('/numerosObra/:refObra', async(req, res)=>{
+    try{
+      const {refObra} = req.params;
+      const numeros = await NumerosObra.find({refObra: refObra}).sort({createdAt: -1});
+      res.json({ numerosObra: numeros });
+    } catch(error){
+      res.status(500).json({message: "Erro"});
     }
   })
 
@@ -228,6 +239,8 @@ app.post('/cadastro', async (req, res) => {
         refObra,
         nomeUsuario,
         nomeObra,
+        blocoObra,
+        unidadeObra,
         etapaEntregue,
         statusEntrega,
       });
@@ -341,6 +354,56 @@ app.post('/cadastro', async (req, res) => {
     }
 
   })
+
+  //meta
+
+  const Meta = require('./models/meta')
+
+  app.post('/meta', async(req, res)=>{
+    try{
+      const { meta, metaData } = req.body;
+      const newMeta = new Meta({
+        meta,
+        metaData,
+      });
+      await newMeta.save();
+      res.status(201).json({message: 'Meta definida com sucesso!'});
+    }catch{
+      res.status(500).json({message: 'Falha ao definir meta!'});
+    }
+  })
+
+  //get meta
+
+  app.get('/meta', async(req, res)=>{
+    try{
+      const meta = await Meta.find().sort({createdAt:-1});
+      res.json({meta: meta});
+    }  catch{
+      res.status(500).json({message: "Erro"});
+    }
+  })
+
+  //Atualiza meta
+
+  app.put('/meta/:id', async (req, res) => {
+    const { id } = req.params;
+    const { meta, metaData } = req.body;
+  
+    try {
+      const atualizaMeta = await Meta.findById(id);
+      if (!atualizaMeta) {
+        return res.status(404).json({ message: 'Meta não encontrada' });
+      }
+      atualizaMeta.meta = meta;
+      atualizaMeta.metaData = metaData;
+      await atualizaMeta.save();
+      res.status(200).json({ message: 'Meta atualizada com sucesso'});
+    } catch (error) {
+      console.error('Erro ao atualizar a meta', error);
+      res.status(500).json({ message: 'Erro ao atualizar a meta' });
+    }
+  });
 
   //meta obra
 

@@ -15,491 +15,503 @@ app.use(cors())
 //models
 const User = require('./models/Users')
 
-mongoose.connect(`mongodb+srv://${process.env.USER_DB}:${process.env.PASSWORD_DB}@cluster0.7kg72rk.mongodb.net/Cluster0`).then(()=>{
-    app.listen(3000) 
-    console.log("Conectou ao banco de dados!")
-}).catch((err)=> console.log(err))
+mongoose.connect(`mongodb+srv://${process.env.USER_DB}:${process.env.PASSWORD_DB}@cluster0.7kg72rk.mongodb.net/Cluster0`).then(() => {
+  app.listen(3000)
+  console.log("Conectou ao banco de dados!")
+}).catch((err) => console.log(err))
 
 
 app.post('/cadastro', async (req, res) => {
-    try {
-        
-      const { nomeUsuario, nomeCompleto, emailUsuario, senhaUsuario, confirmaSenha, nivelUsuario } = req.body;
-      const existingUser = await User.findOne({ emailUsuario });
-  
-      if(!nomeUsuario){
-        return res.status(400).json({ message: 'Informe o nome de usuario'});
-      }
-  
-      if(!nomeCompleto){
-        return res.status(400).json({ message: 'Informe o nome completo'});
-      }
-  
-      if(!emailUsuario){
-        return res.status(400).json({ message: 'Informe o email'});
-      }
-  
-      // if(!companyUsuario){
-      //   return res.status(400).json({ message: 'Informe sua empresa'});
-      // }
-  
-      if (!senhaUsuario){
-        return res.status(400).json({ message: 'Informe a senha'});
-      }
-  
-      if(confirmaSenha !== senhaUsuario){
-        return res.status(400).json({ Message: 'As senhas precisam ser iguais'});
-      }
-  
-      if (existingUser) {
-        return res.status(400).json({ message: 'Este email já está cadastrado.' });
-      }
+  try {
 
-      const salt= await bcrypt.genSaltSync(12)
-      const passwordHash = await bcrypt.hashSync(senhaUsuario, salt)
+    const { nomeUsuario, nomeCompleto, emailUsuario, senhaUsuario, confirmaSenha, nivelUsuario } = req.body;
+    const existingUser = await User.findOne({ emailUsuario });
 
-      // Cria um novo usuário
-      const newUser = new User({
-        nomeUsuario,
-        nomeCompleto,
-        emailUsuario,
-        nivelUsuario,
-        salt,
-        senhaUsuario: passwordHash,
-        confirmaSenha,
-      });
-  
-      // Salva o novo usuário no banco de dados
-      await newUser.save();
-      
-      res.status(201).json({ message: 'Usuário cadastrado com sucesso.' });
-    } catch (error) {
-      console.error('Erro ao cadastrar usuário:', error);
-      res.status(500).json({ message: 'Erro interno do servidor.' });
+    if (!nomeUsuario) {
+      return res.status(400).json({ message: 'Informe o nome de usuario' });
     }
-  });
 
-  //get usuarios
-  app.get('/usuarios', async(req, res)=>{
-    try{
-      const users = await User.find().sort({createdAt:-1});
-      res.json({users: users});
-    }  catch{
-      res.status(500).json({message: "Erro"});
+    if (!nomeCompleto) {
+      return res.status(400).json({ message: 'Informe o nome completo' });
     }
-  })
 
-  //get Usuario
-
-  app.get('/usuario/:id', async(req, res)=>{
-    try{
-      const {id} = req.params;
-      const usuario = await User.findById(id);
-      res.json({usuario: usuario});
-    }  catch(error){
-      console.error(error)
-      res.status(500).json({message: "Erro"});
+    if (!emailUsuario) {
+      return res.status(400).json({ message: 'Informe o email' });
     }
-  })
 
+    // if(!companyUsuario){
+    //   return res.status(400).json({ message: 'Informe sua empresa'});
+    // }
 
-  //cadastro Obras
-  const Obra = require('./models/Obras')
-
-  app.post('/cadastroObras', async (req, res ) => {
-    try{
-      const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, servicoPrestado, precoServico, descricaoObra } = req.body;
-
-      const newObra = new Obra({
-        nomeObra,
-        enderecoObra,
-        cidadeObra,
-        numeroRua,
-        complementoObra,
-        tipoObra,
-        servicoPrestado,
-        precoServico,
-        descricaoObra,
-      });
-
-      await newObra.save();
-      res.json({id: newObra._id});
-    } catch {
-      res.status(500).json({message: 'Erro interno do servidor!'});
+    if (!senhaUsuario) {
+      return res.status(400).json({ message: 'Informe a senha' });
     }
-  })
 
-  //Cadastro numero de Unidades
-
-  const NumerosObra = require('./models/NumerosObra')
-
-  app.post('/cadastroNumerosObra', async (req, res ) => {
-    try{
-      const { refObra, numeroBloco, numeroAndares, numeroUnidades } = req.body;
-
-      const newNumerosObra = new NumerosObra({
-        refObra,
-        numeroBloco,
-        numeroAndares,
-        numeroUnidades
-      });
-
-      await newNumerosObra.save();
-
-      res.status(201).json({message: 'Dados cadastrados com Sucesso!'});
-    } catch {
-      res.status(500).json({message: 'Erro interno do servidor!'});
+    if (confirmaSenha !== senhaUsuario) {
+      return res.status(400).json({ Message: 'As senhas precisam ser iguais' });
     }
-  })
 
-  //get Numeros obra
-  app.get('/numerosObra/:refObra', async(req, res)=>{
-    try{
-      const {refObra} = req.params;
-      const numeros = await NumerosObra.find({refObra: refObra}).sort({createdAt: -1});
-      res.json({ numerosObra: numeros });
-    } catch(error){
-      res.status(500).json({message: "Erro"});
+    if (existingUser) {
+      return res.status(400).json({ message: 'Este email já está cadastrado.' });
     }
-  })
+
+    const salt = await bcrypt.genSaltSync(12)
+    const passwordHash = await bcrypt.hashSync(senhaUsuario, salt)
+
+    // Cria um novo usuário
+    const newUser = new User({
+      nomeUsuario,
+      nomeCompleto,
+      emailUsuario,
+      nivelUsuario,
+      salt,
+      senhaUsuario: passwordHash,
+      confirmaSenha,
+    });
+
+    // Salva o novo usuário no banco de dados
+    await newUser.save();
+
+    res.status(201).json({ message: 'Usuário cadastrado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao cadastrar usuário:', error);
+    res.status(500).json({ message: 'Erro interno do servidor.' });
+  }
+});
+
+//get usuarios
+app.get('/usuarios', async (req, res) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    res.json({ users: users });
+  } catch {
+    res.status(500).json({ message: "Erro" });
+  }
+})
+
+//get Usuario
+
+app.get('/usuario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const usuario = await User.findById(id);
+    res.json({ usuario: usuario });
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Erro" });
+  }
+})
 
 
-  //get obras
+//cadastro Obras
+const Obra = require('./models/Obras')
 
-  app.get('/verObras', async (req, res)=>{
-    try{
-      const obras = await Obra.find().sort({createdAt:-1});
-      res.json({obras: obras});
-    } catch{
-      res.status(500).json({message: "Erro"});
-    }
-  })
+app.post('/cadastroObras', async (req, res) => {
+  try {
+    const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, servicoPrestado, precoServico, descricaoObra } = req.body;
 
-  //Get Obra
-  app.get('/obra/:id', async(req, res)=>{
-    try{
-      const {id} = req.params;
-      const obra = await Obra.findById(id);
-      res.json({obra: obra});
-    }  catch(error){
-      console.error(error)
-      res.status(500).json({message: "Erro"});
-    }
-  })
+    const newObra = new Obra({
+      nomeObra,
+      enderecoObra,
+      cidadeObra,
+      numeroRua,
+      complementoObra,
+      tipoObra,
+      servicoPrestado,
+      precoServico,
+      descricaoObra,
+    });
 
-  const Servico = require('./models/Servicos')
+    await newObra.save();
+    res.json({ id: newObra._id });
+  } catch {
+    res.status(500).json({ message: 'Erro interno do servidor!' });
+  }
+})
 
-  //Cadastro servico
-  app.post('/cadastroServico', async (req, res)=>{
-    try{
-      const {nomeServico} = req.body;
-      const newServico = new Servico({
-        nomeServico,
-      });
-      await newServico.save();
-      res.status(201).json({message: 'Serviço cadastrado com Sucesso!'});
-    } catch{
-      res.status(500).json({message: 'Erro interno do servidor!'});
-    }
-  })
+//Cadastro numero de Unidades
 
-  //get servico
-  app.get('/servicos', async(req, res)=>{
-    try{
-      const servicos = await Servico.find().sort({createdAt:-1});
-      res.json({servicos: servicos});
-    }  catch{
-      res.status(500).json({message: "Erro"});
-    }
-  })
+const NumerosObra = require('./models/NumerosObra')
+
+app.post('/cadastroNumerosObra', async (req, res) => {
+  try {
+    const { refObra, numeroBloco, numeroAndares, numeroUnidades } = req.body;
+
+    const newNumerosObra = new NumerosObra({
+      refObra,
+      numeroBloco,
+      numeroAndares,
+      numeroUnidades
+    });
+
+    await newNumerosObra.save();
+
+    res.status(201).json({ message: 'Dados cadastrados com Sucesso!' });
+  } catch {
+    res.status(500).json({ message: 'Erro interno do servidor!' });
+  }
+})
+
+//get Numeros obra
+app.get('/numerosObra/:refObra', async (req, res) => {
+  try {
+    const { refObra } = req.params;
+    const numeros = await NumerosObra.find({ refObra: refObra }).sort({ createdAt: -1 });
+    res.json({ numerosObra: numeros });
+  } catch (error) {
+    res.status(500).json({ message: "Erro" });
+  }
+})
+
+
+//get obras
+
+app.get('/verObras', async (req, res) => {
+  try {
+    const obras = await Obra.find().sort({ createdAt: -1 });
+    res.json({ obras: obras });
+  } catch {
+    res.status(500).json({ message: "Erro" });
+  }
+})
+
+//Get Obra
+app.get('/obra/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const obra = await Obra.findById(id);
+    res.json({ obra: obra });
+  } catch (error) {
+    console.error(error)
+    res.status(500).json({ message: "Erro" });
+  }
+})
+
+const Servicos = require('./models/Servicos')
+
+//Cadastro servico
+app.post('/cadastroServico', async (req, res) => {
+  try {
+    const { nomeServicos } = req.body;
+    const newServicos = new Servicos({
+      nomeServicos,
+    });
+    await newServicos.save();
+    res.status(201).json({ message: 'Serviço cadastrado com Sucesso!' });
+  } catch {
+    res.status(500).json({ message: 'Erro interno do servidor!' });
+  }
+})
+
+//get servico
+app.get('/servicos', async (req, res) => {
+  try {
+    const servicos = await Servicos.find().sort({ createdAt: -1 });
+    res.json({ servicos: servicos });
+  } catch {
+    res.status(500).json({ message: "Erro" });
+  }
+})
 
 //delete Servico
 
-  app.delete('/deleteServico/:id', async(req, res)=>{
-    try {
-      const {id} = req.params;
-      await Servico.findByIdAndDelete((id));
-      res.status(204).json({message: "Item apagado com sucesso"});
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error deleting item');
-    }
-  })
-
-  //Entrega Serviços
-
-  const EntregaServico = require('./models/Entregas');
-
-  app.post('/entregaServico', async(req, res)=>{
-    try{
-      const {refUsuario, refObra, nomeUsuario, nomeObra, etapaEntregue, statusEntrega} = req.body;
-      
-      const entregaServico = new EntregaServico({
-        refUsuario,
-        refObra,
-        nomeUsuario,
-        nomeObra,
-        blocoObra,
-        unidadeObra,
-        etapaEntregue,
-        statusEntrega,
-      });
-      await entregaServico.save()
-      res.status(201).json({message: "Serviço entregue"})
-    } catch(error){
-      console.error(error);
-      res.status(500).json({message: 'Erro interno do servidor!'});
-    }
-  })
-
-  //Get Entregas por referencia
-
-  app.get('/entregaServico/:refUsuario', async(req, res)=>{
-    try{
-      const {refUsuario} = req.params;
-      const entregas = await EntregaServico.find({refUsuario: refUsuario}).sort({createdAt: -1});
-      res.json({ entregaServico: entregas });
-    } catch(error){
-      res.status(500).json({message: "Erro"});
-    }
-  })
-
-  //Get entregas por obra
-  app.get('/entregaServicoObra/:refObra', async(req, res)=>{
-    try{
-      const {refObra} = req.params;
-      const entregas = await EntregaServico.find({refObra: refObra}).sort({createdAt: -1});
-      res.json({ entregaServico: entregas });
-    } catch(error){
-      res.status(500).json({message: "Erro"});
-    }
-  })
-
-
-  //Etapas
-  const Etapas = require('./models/Etapas');
-
-  app.post('/cadastroEtapa', async (req, res)=>{
-    try{
-      const {nomeEtapa, relEtapa} = req.body;
-      const newEtapa = new Etapas({
-        nomeEtapa,
-        relEtapa,
-      });
-      await newEtapa.save();
-      res.status(201).json({message: 'Etapa cadastrado com Sucesso!'});
-    } catch{
-      res.status(500).json({message: 'Erro interno do servidor!'});
-    }
-  })
-
-
-  //get etapas
-
-  app.get('/etapas', async(req, res)=>{
-    try{
-      const etapas = await Etapas.find().sort({createdAt:-1});
-      res.json({etapas: etapas});
-    }  catch{
-      res.status(500).json({message: "Erro"});
-    }
-  })
-
-  //delete etapas
-
-  app.delete('/deleteEtapa/:id', async(req, res)=>{
-    try {
-      const {id} = req.params;
-      await Etapas.findByIdAndDelete((id));
-      res.status(204).json({message: "Item apagado com sucesso"});
-    } catch (error) {
-      console.error(error);
-      res.status(500).send('Error deleting item');
-    }
-  })
-
-  //login usuarios
-
-
-  app.post('/login', async (req,res)=>{
-
-    const {nomeUsuario, senhaUsuario} = req.body
-    const user = await User.findOne({ nomeUsuario: nomeUsuario });
-    const passwordHash = bcrypt.hashSync(senhaUsuario, user.salt);
-    
-    if(!nomeUsuario){
-        return res.status(400).json({ message: 'Informe o nome de usuario'});
-      }
-
-    if (!senhaUsuario){
-        return res.status(400).json({ message: 'Informe a senha'});
-    }
-    
-    if (!user){
-        return res.status(404).json({ message: 'Usuario nao encontrado'});
-    }
-
-    if (user.senhaUsuario !== passwordHash){
-      return res.status(404).json({message: 'Senha incorreta!'})
-    }
-
-    if (user && bcrypt.compareSync(senhaUsuario, user.senhaUsuario, user.nomeUsuario)){
-      const usuario = {
-        userId: user._id,
-        nivel: user.nivelUsuario,
-        userName: user.nivelUsuario,
-      }
-      const token = jwt.sign(usuario, 'secreto', { expiresIn: '24h' });
-      res.json({token, nivelUsuario: usuario.nivel, userId: user._id, userName: user.nomeUsuario});
-    }
-
-  })
-
-  //meta
-
-  const Meta = require('./models/meta')
-
-  app.post('/meta', async(req, res)=>{
-    try{
-      const { meta, metaData } = req.body;
-      const newMeta = new Meta({
-        meta,
-        metaData,
-      });
-      await newMeta.save();
-      res.status(201).json({message: 'Meta definida com sucesso!'});
-    }catch{
-      res.status(500).json({message: 'Falha ao definir meta!'});
-    }
-  })
-
-  //get meta
-
-  app.get('/meta', async(req, res)=>{
-    try{
-      const meta = await Meta.find().sort({createdAt:-1});
-      res.json({meta: meta});
-    }  catch{
-      res.status(500).json({message: "Erro"});
-    }
-  })
-
-  //Atualiza meta
-
-  app.put('/meta/:id', async (req, res) => {
+app.delete('/deleteServico/:id', async (req, res) => {
+  try {
     const { id } = req.params;
+    await Servicos.findByIdAndDelete((id));
+    res.status(204).json({ message: "Item apagado com sucesso" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error deleting item');
+  }
+})
+
+//Entrega Serviços
+
+const EntregaServico = require('./models/Entregas');
+
+app.post('/entregaServico', async (req, res) => {
+  try {
+    const { refUsuario, refObra, blocoObra, servicoObra, unidadeObra, etapaEntregue, statusEntrega } = req.body;
+
+    const entregaServico = new EntregaServico({
+      refUsuario,
+      refObra,
+      blocoObra,
+      servicoObra,
+      unidadeObra,
+      etapaEntregue,
+      statusEntrega,
+    });
+    console.log(req.body)
+    await entregaServico.save()
+    res.status(201).json({ message: "Serviço entregue" })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Erro interno do servidor!' });
+  }
+})
+
+//Get Entregas por referencia
+
+app.get('/entregaServico/:refUsuario', async (req, res) => {
+  try {
+    const { refUsuario } = req.params;
+    const entregas = await EntregaServico.find({ refUsuario: refUsuario }).sort({ createdAt: -1 });
+    res.json({ entregaServico: entregas });
+  } catch (error) {
+    res.json({ message: "Erro" });
+  }
+})
+
+//Get entregas por obra
+app.get('/entregaServicoObra/:refObra', async (req, res) => {
+  try {
+    const { refObra } = req.params;
+    const entregas = await EntregaServico.find({ refObra: refObra }).sort({ createdAt: -1 });
+    res.json({ entregaServico: entregas });
+  } catch {
+    res.json({ message: "Erro" });
+  }
+})
+
+
+//Etapas
+const Etapas = require('./models/Etapas');
+
+app.post('/cadastroEtapa', async (req, res) => {
+  try {
+    const { nomeEtapa, refEtapa, porcentagemReferencia } = req.body;
+    const newEtapa = new Etapas({
+      nomeEtapa,
+      refEtapa,
+      porcentagemReferencia,
+    });
+    await newEtapa.save();
+    res.status(201).json({ message: 'Etapa cadastrado com Sucesso!' });
+  } catch {
+    res.status(500).json({ message: 'Erro interno do servidor!' });
+  }
+})
+
+
+//get etapas
+
+app.get('/etapas', async (req, res) => {
+  try {
+    const etapas = await Etapas.find().sort({ createdAt: -1 });
+    res.json({ etapas: etapas });
+  } catch {
+    res.status(500).json({ message: "Erro" });
+  }
+})
+
+//get etapas por id
+app.get('/refEtapas/:refEtapa', async (req, res) => {
+  try {
+    const { refEtapa } = req.params;
+    const etapas = await Etapas.find({ refEtapa: refEtapa }).sort({ createdAt: -1 });
+    res.status(200).json({ etapas: etapas })
+  } catch {
+    res.status(404).json('Nenhum dado cadastrado!')
+  }
+})
+
+//delete etapas
+
+app.delete('/deleteEtapa/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    await Etapas.findByIdAndDelete((id));
+    res.status(204).json({ message: "Item apagado com sucesso" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error deleting item');
+  }
+})
+
+//login usuarios
+
+
+app.post('/login', async (req, res) => {
+
+  const { nomeUsuario, senhaUsuario } = req.body
+  const user = await User.findOne({ nomeUsuario: nomeUsuario });
+  const passwordHash = bcrypt.hashSync(senhaUsuario, user.salt);
+
+  if (!nomeUsuario) {
+    return res.status(400).json({ message: 'Informe o nome de usuario' });
+  }
+
+  if (!senhaUsuario) {
+    return res.status(400).json({ message: 'Informe a senha' });
+  }
+
+  if (!user) {
+    return res.status(404).json({ message: 'Usuario nao encontrado' });
+  }
+
+  if (user.senhaUsuario !== passwordHash) {
+    return res.status(404).json({ message: 'Senha incorreta!' })
+  }
+
+  if (user && bcrypt.compareSync(senhaUsuario, user.senhaUsuario, user.nomeUsuario)) {
+    const usuario = {
+      userId: user._id,
+      nivel: user.nivelUsuario,
+      userName: user.nivelUsuario,
+    }
+    const token = jwt.sign(usuario, 'secreto', { expiresIn: '24h' });
+    res.json({ token, nivelUsuario: usuario.nivel, userId: user._id, userName: user.nomeUsuario });
+  }
+
+})
+
+//meta
+
+const Meta = require('./models/meta')
+
+app.post('/meta', async (req, res) => {
+  try {
     const { meta, metaData } = req.body;
-  
-    try {
-      const atualizaMeta = await Meta.findById(id);
-      if (!atualizaMeta) {
-        return res.status(404).json({ message: 'Meta não encontrada' });
-      }
-      atualizaMeta.meta = meta;
-      atualizaMeta.metaData = metaData;
-      await atualizaMeta.save();
-      res.status(200).json({ message: 'Meta atualizada com sucesso'});
-    } catch (error) {
-      console.error('Erro ao atualizar a meta', error);
-      res.status(500).json({ message: 'Erro ao atualizar a meta' });
+    const newMeta = new Meta({
+      meta,
+      metaData,
+    });
+    await newMeta.save();
+    res.status(201).json({ message: 'Meta definida com sucesso!' });
+  } catch {
+    res.status(500).json({ message: 'Falha ao definir meta!' });
+  }
+})
+
+//get meta
+
+app.get('/meta', async (req, res) => {
+  try {
+    const meta = await Meta.find().sort({ createdAt: -1 });
+    res.json({ meta: meta });
+  } catch {
+    res.status(500).json({ message: "Erro" });
+  }
+})
+
+//Atualiza meta
+
+app.put('/meta/:id', async (req, res) => {
+  const { id } = req.params;
+  const { meta, metaData } = req.body;
+
+  try {
+    const atualizaMeta = await Meta.findById(id);
+    if (!atualizaMeta) {
+      return res.status(404).json({ message: 'Meta não encontrada' });
     }
-  });
+    atualizaMeta.meta = meta;
+    atualizaMeta.metaData = metaData;
+    await atualizaMeta.save();
+    res.status(200).json({ message: 'Meta atualizada com sucesso' });
+  } catch (error) {
+    console.error('Erro ao atualizar a meta', error);
+    res.status(500).json({ message: 'Erro ao atualizar a meta' });
+  }
+});
 
-  //meta obra
+//meta obra
 
-  const MetaObra = require('./models/metaObra')
+const MetaObra = require('./models/metaObra')
 
-  app.post('/metaObra', async (req, res)=>{
-    try{
-      const {valorMeta, relObra} = req.body;
-      const newMetaObra = new MetaObra({
-        valorMeta,
-        relObra,
-      });
-      await newMetaObra.save();
-      res.status(201).json({message: 'Meta cadastrado com Sucesso!'});
-    }catch{
-      res.status(500).json({message: 'Erro!'});
+app.post('/metaObra', async (req, res) => {
+  try {
+    const { valorMeta, relObra } = req.body;
+    const newMetaObra = new MetaObra({
+      valorMeta,
+      relObra,
+    });
+    await newMetaObra.save();
+    res.status(201).json({ message: 'Meta cadastrado com Sucesso!' });
+  } catch {
+    res.status(500).json({ message: 'Erro!' });
+  }
+})
+
+
+
+app.get('/metaObra/:relObra', async (req, res) => {
+  try {
+    const { relObra } = req.params;
+    const metaobra = await MetaObra.find({ relObra: relObra }).sort({ createdAt: 1 });
+    res.json({ metaObra: metaobra });
+  } catch {
+    res.json({ message: 'Erro' })
+  }
+})
+
+
+app.put('/metaObra/:id', async (req, res) => {
+  const { id } = req.params;
+  const { valorMeta } = req.body;
+
+  try {
+    const metaObra = await MetaObra.findById(id);
+    if (!metaObra) {
+      return res.status(404).json({ message: 'Meta não encontrada' });
     }
-  })
+    metaObra.valorMeta = valorMeta;
+    await metaObra.save();
+    res.status(200).json({ message: 'Meta atualizada com sucesso' });
+  } catch (error) {
+    console.error('Erro ao atualizar a meta da obra:', error);
+    res.status(500).json({ message: 'Erro ao atualizar a meta da obra' });
+  }
+});
+
+
+//meta usuario
+
+const MetaUser = require('./models/metaUser')
+
+app.post('/metaUser', async (req, res) => {
+  try {
+    const { valorMeta, relUser } = req.body;
+    const newMetaUser = new MetaUser({
+      valorMeta,
+      relUser,
+    });
+    await newMetaUser.save();
+    res.status(201).json({ message: 'Meta cadastrado com Sucesso!' });
+  } catch {
+    res.status(500).json({ message: 'Erro!' });
+  }
+})
 
 
 
-  app.get('/metaObra/:relObra', async (req,res)=>{
-    try{
-      const {relObra} = req.params;
-      const metaobra = await MetaObra.find({relObra: relObra});
-      res.json({ metaObra: metaobra });
-    }catch{
-      res.json({message: 'Erro'})
+app.get('/metaUser/:relUser', async (req, res) => {
+  try {
+    const { relUser } = req.params;
+    const metauser = await MetaUser.find({ relUser: relUser });
+    res.json({ metaUser: metauser });
+  } catch {
+    res.json({ message: 'Erro' })
+  }
+})
+
+
+app.put('/metaUser/:id', async (req, res) => {
+  const { id } = req.params;
+  const { valorMeta } = req.body;
+
+  try {
+    const metaUser = await MetaUser.findById(id);
+    if (!metaUser) {
+      return res.status(404).json({ message: 'Meta não encontrada' });
     }
-  })
-
-  
-  app.put('/metaObra/:id', async (req, res) => {
-    const { id } = req.params;
-    const { valorMeta } = req.body;
-  
-    try {
-      const metaObra = await MetaObra.findById(id);
-      if (!metaObra) {
-        return res.status(404).json({ message: 'Meta não encontrada' });
-      }
-      metaObra.valorMeta = valorMeta;
-      await metaObra.save();
-      res.status(200).json({ message: 'Meta atualizada com sucesso'});
-    } catch (error) {
-      console.error('Erro ao atualizar a meta da obra:', error);
-      res.status(500).json({ message: 'Erro ao atualizar a meta da obra' });
-    }
-  });
-
-
-  //meta usuario
-
-  const MetaUser = require('./models/metaUser')
-
-  app.post('/metaUser', async (req, res)=>{
-    try{
-      const { valorMeta, relUser } = req.body;
-      const newMetaUser = new MetaUser({
-        valorMeta,
-        relUser,
-      });
-      await newMetaUser.save();
-      res.status(201).json({message: 'Meta cadastrado com Sucesso!'});
-    }catch{
-      res.status(500).json({message: 'Erro!'});
-    }
-  })
-
-
-
-  app.get('/metaUser/:relUser', async (req,res)=>{
-    try{
-      const {relUser} = req.params;
-      const metauser = await MetaUser.find({relUser: relUser});
-      res.json({ metaUser: metauser });
-    }catch{
-      res.json({message: 'Erro'})
-    }
-  })
-
-  
-  app.put('/metaUser/:id', async (req, res) => {
-    const { id } = req.params;
-    const { valorMeta } = req.body;
-  
-    try {
-      const metaUser = await MetaUser.findById(id);
-      if (!metaUser) {
-        return res.status(404).json({ message: 'Meta não encontrada' });
-      }
-      metaUser.valorMeta = valorMeta;
-      await metaUser.save();
-      res.status(200).json({ message: 'Meta atualizada com sucesso'});
-    } catch (error) {
-      console.error('Erro ao atualizar a meta da obra:', error);
-      res.status(500).json({ message: 'Erro ao atualizar a meta da obra' });
-    }
-  });
+    metaUser.valorMeta = valorMeta;
+    await metaUser.save();
+    res.status(200).json({ message: 'Meta atualizada com sucesso' });
+  } catch (error) {
+    console.error('Erro ao atualizar a meta da obra:', error);
+    res.status(500).json({ message: 'Erro ao atualizar a meta da obra' });
+  }
+});

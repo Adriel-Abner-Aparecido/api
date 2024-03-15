@@ -2,7 +2,10 @@ const mongoose = require('mongoose')
 
 const MetaObra = new mongoose.model('metaobra', new mongoose.Schema({
     valorMeta: String,
-    relObra: String,
+    relObra: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'obras'
+    },
 },
 {timestamps: true})
 ) 

@@ -291,7 +291,7 @@ app.get('/entregaServicoObra/:refObra', async (req, res) => {
     const entregas = await EntregaServico.find({ refObra: refObra }).sort({createdAt: -1})
       .populate({
         path: 'refUsuario',
-        select: 'nomeUsuario',
+        select: 'nomeCompleto',
       })
       .populate({
         path: 'refObra',
@@ -481,7 +481,7 @@ app.post('/metaObra', async (req, res) => {
 app.get('/metaObra/:relObra', async (req, res) => {
   try {
     const { relObra } = req.params;
-    const metaobra = await MetaObra.findOne({ relObra: relObra }).sort({ createdAt: 1 });
+    const metaobra = await MetaObra.find({ relObra: relObra }).sort({ createdAt: 1 });
     res.json({ metaObra: metaobra });
   } catch {
     res.json({ message: 'Erro' })

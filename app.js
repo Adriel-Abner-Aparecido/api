@@ -243,7 +243,6 @@ app.post('/entregaServico', async (req, res) => {
       etapaEntregue,
       statusEntrega,
     });
-    console.log(req.body)
     await entregaServico.save()
     res.status(201).json({ message: "Serviço entregue" })
   } catch (error) {
@@ -257,7 +256,28 @@ app.post('/entregaServico', async (req, res) => {
 app.get('/entregaServico/:refUsuario', async (req, res) => {
   try {
     const { refUsuario } = req.params;
-    const entregas = await EntregaServico.find({ refUsuario: refUsuario }).sort({ createdAt: -1 });
+    const entregas = await EntregaServico.find({ refUsuario: refUsuario }).sort({ createdAt: -1 })
+    .populate({
+      path: 'refUsuario',
+      select: 'nomeCompleto',
+    })
+    .populate({
+      path: 'refObra',
+      select: 'nomeObra',
+    })
+    .populate({
+      path: 'blocoObra',
+      select: 'numeroBloco',
+    })
+    .populate({
+      path: 'servicoObra',
+      select: 'nomeServico',
+    })
+    .populate({
+      path: 'etapaEntregue',
+      select: 'nomeEtapa',
+    })
+    .exec();
     res.json({ entregaServico: entregas });
   } catch (error) {
     res.json({ message: "Erro" });
@@ -268,10 +288,31 @@ app.get('/entregaServico/:refUsuario', async (req, res) => {
 app.get('/entregaServicoObra/:refObra', async (req, res) => {
   try {
     const { refObra } = req.params;
-    const entregas = await EntregaServico.find({ refObra: refObra }).sort({ createdAt: -1 });
+    const entregas = await EntregaServico.find({ refObra: refObra }).sort({createdAt: -1})
+      .populate({
+        path: 'refUsuario',
+        select: 'nomeUsuario',
+      })
+      .populate({
+        path: 'refObra',
+        select: 'nomeObra',
+      })
+      .populate({
+        path: 'blocoObra',
+        select: 'numeroBloco',
+      })
+      .populate({
+        path: 'servicoObra',
+        select: 'nomeServico',
+      })
+      .populate({
+        path: 'etapaEntregue',
+        select: 'nomeEtapa',
+      })
+      .exec();
     res.json({ entregaServico: entregas });
-  } catch {
-    res.json({ message: "Erro" });
+  } catch(err) {
+    res.status(500).json({ message: "Erro", err });
   }
 })
 
@@ -359,7 +400,7 @@ app.post('/login', async (req, res) => {
     const usuario = {
       userId: user._id,
       nivel: user.nivelUsuario,
-      userName: user.nivelUsuario,
+      userName: user.nomeUsuario,
     }
     const token = jwt.sign(usuario, 'secreto', { expiresIn: '24h' });
     res.json({ token, nivelUsuario: usuario.nivel, userId: user._id, userName: user.nomeUsuario });
@@ -440,7 +481,7 @@ app.post('/metaObra', async (req, res) => {
 app.get('/metaObra/:relObra', async (req, res) => {
   try {
     const { relObra } = req.params;
-    const metaobra = await MetaObra.find({ relObra: relObra }).sort({ createdAt: 1 });
+    const metaobra = await MetaObra.findOne({ relObra: relObra }).sort({ createdAt: 1 });
     res.json({ metaObra: metaobra });
   } catch {
     res.json({ message: 'Erro' })
@@ -478,6 +519,7 @@ app.post('/metaUser', async (req, res) => {
       valorMeta,
       relUser,
     });
+    console.log(req.body)
     await newMetaUser.save();
     res.status(201).json({ message: 'Meta cadastrado com Sucesso!' });
   } catch {
@@ -515,3 +557,6 @@ app.put('/metaUser/:id', async (req, res) => {
     res.status(500).json({ message: 'Erro ao atualizar a meta da obra' });
   }
 });
+
+//Config
+

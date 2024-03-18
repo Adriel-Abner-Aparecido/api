@@ -20,7 +20,7 @@ const EntregaServico = new mongoose.model('entregaservico', new mongoose.Schema(
     unidadeObra: String,
     etapaEntregue: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'servicos'
+        ref: 'etapas'
     },
     statusEntrega: {
         type: String,

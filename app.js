@@ -519,7 +519,6 @@ app.post('/metaUser', async (req, res) => {
       valorMeta,
       relUser,
     });
-    console.log(req.body)
     await newMetaUser.save();
     res.status(201).json({ message: 'Meta cadastrado com Sucesso!' });
   } catch {

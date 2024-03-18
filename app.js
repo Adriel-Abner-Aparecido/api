@@ -251,6 +251,38 @@ app.post('/entregaServico', async (req, res) => {
   }
 })
 
+//Get entregas Global
+
+app.get('/entregas', async (req, res) => {
+  try {
+    const entregas = await EntregaServico.find().sort({createdAt: -1})
+      .populate({
+        path: 'refUsuario',
+        select: 'nomeCompleto',
+      })
+      .populate({
+        path: 'refObra',
+        select: 'nomeObra',
+      })
+      .populate({
+        path: 'blocoObra',
+        select: 'numeroBloco',
+      })
+      .populate({
+        path: 'servicoObra',
+        select: 'nomeServico',
+      })
+      .populate({
+        path: 'etapaEntregue',
+        select: 'nomeEtapa',
+      })
+      .exec();
+    res.json({ entregaServico: entregas });
+  } catch(err) {
+    res.status(500).json({ message: "Erro", err });
+  }
+})
+
 //Get Entregas por referencia
 
 app.get('/entregaServico/:refUsuario', async (req, res) => {

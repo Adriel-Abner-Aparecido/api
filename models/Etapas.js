@@ -4,9 +4,9 @@ const Etapas = new mongoose.model('etapas', new mongoose.Schema({
     nomeEtapa: String,
     refEtapa: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'servico'
+        ref: 'servicos'
     },
-    porcentagemReferencia: String,
+    tempoExecucao: String,
 },
 {timestamps: true})
 ) 

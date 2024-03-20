@@ -192,10 +192,11 @@ const Servicos = require('./models/Servicos')
 //Cadastro servico
 app.post('/cadastroServico', async (req, res) => {
   try {
-    const { nomeServicos } = req.body;
+    const { nomeServico } = req.body;
     const newServicos = new Servicos({
-      nomeServicos,
+      nomeServico,
     });
+    console.log(req.body)
     await newServicos.save();
     res.status(201).json({ message: 'Serviço cadastrado com Sucesso!' });
   } catch {
@@ -354,11 +355,11 @@ const Etapas = require('./models/Etapas');
 
 app.post('/cadastroEtapa', async (req, res) => {
   try {
-    const { nomeEtapa, refEtapa, porcentagemReferencia } = req.body;
+    const { nomeEtapa, refEtapa, tempoExecucao } = req.body;
     const newEtapa = new Etapas({
       nomeEtapa,
       refEtapa,
-      porcentagemReferencia,
+      tempoExecucao,
     });
     await newEtapa.save();
     res.status(201).json({ message: 'Etapa cadastrado com Sucesso!' });
@@ -372,7 +373,12 @@ app.post('/cadastroEtapa', async (req, res) => {
 
 app.get('/etapas', async (req, res) => {
   try {
-    const etapas = await Etapas.find().sort({ createdAt: -1 });
+    const etapas = await Etapas.find().sort({ createdAt: -1 })
+    .populate({
+      path: 'refEtapa',
+      select: 'nomeServico',
+    })
+    .exec();
     res.json({ etapas: etapas });
   } catch {
     res.status(500).json({ message: "Erro" });
@@ -383,7 +389,7 @@ app.get('/etapas', async (req, res) => {
 app.get('/refEtapas/:refEtapa', async (req, res) => {
   try {
     const { refEtapa } = req.params;
-    const etapas = await Etapas.find({ refEtapa: refEtapa }).sort({ createdAt: -1 });
+    const etapas = await Etapas.find({ refEtapa: refEtapa }).sort({ createdAt: -1 })
     res.status(200).json({ etapas: etapas })
   } catch {
     res.status(404).json('Nenhum dado cadastrado!')

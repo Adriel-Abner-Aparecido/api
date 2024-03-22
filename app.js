@@ -15,7 +15,8 @@ app.use(cors())
 //models
 const User = require('./models/Users')
 
-mongoose.connect(`mongodb+srv://${process.env.USER_DB}:${process.env.PASSWORD_DB}@cluster0.7kg72rk.mongodb.net/Cluster0`).then(() => {
+mongoose.connect(`${process.env.MONGODB_URL}`).then(() => {
+  
   app.listen(3000)
   console.log("Conectou ao banco de dados!")
 }).catch((err) => console.log(err))
@@ -38,10 +39,6 @@ app.post('/cadastro', async (req, res) => {
     if (!emailUsuario) {
       return res.status(400).json({ message: 'Informe o email' });
     }
-
-    // if(!companyUsuario){
-    //   return res.status(400).json({ message: 'Informe sua empresa'});
-    // }
 
     if (!senhaUsuario) {
       return res.status(400).json({ message: 'Informe a senha' });
@@ -156,7 +153,7 @@ app.post('/cadastroNumerosObra', async (req, res) => {
 app.get('/numerosObra/:refObra', async (req, res) => {
   try {
     const { refObra } = req.params;
-    const numeros = await NumerosObra.find({ refObra: refObra }).sort({ createdAt: -1 });
+    const numeros = await NumerosObra.find({ refObra: refObra });
     res.json({ numerosObra: numeros });
   } catch (error) {
     res.status(500).json({ message: "Erro" });
@@ -219,11 +216,22 @@ app.get('/servicos', async (req, res) => {
 app.delete('/deleteServico/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await Servicos.findByIdAndDelete((id));
+    const reletapa = await Etapas.findOne({ refEtapa: id});
+    const realservicoprestado = await ServicosPrestados.findOne({servicoPrestado: id});
+
+    if(reletapa){
+      return res.json('Este item esta relacionado com alguma etapa, apague a etapa primeiro!');
+    }
+
+    if(realservicoprestado){
+      return res.json('Este item esta relacionado com alguma serviço prestado e nao pode ser apagado!');
+    }
+
+    await Servicos.findByIdAndDelete(id);
     res.status(204).json({ message: "Item apagado com sucesso" });
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error deleting item');
+    res.status(500).json('Error deleting item');
   }
 })
 
@@ -349,6 +357,65 @@ app.get('/entregaServicoObra/:refObra', async (req, res) => {
   }
 })
 
+//servico prestado
+const ServicosPrestados = require('./models/ServicosPrestados');
+
+app.post('/servicoPrestado', async(req, res)=>{
+  try{
+    const { refObra, servicoPrestado, valoraReceber, valoraPagar} = req.body;
+    const newServicoPrestado = new ServicosPrestados({
+      refObra,
+      servicoPrestado,
+      valoraReceber,
+      valoraPagar,
+    });
+    await newServicoPrestado.save();
+    res.status(200).json('Serviço cadastrado com sucesso!');
+  } catch {
+    res.status(200).json('Erro ao cadastrar serviço prestado!');
+  }
+})
+
+//Get servico Prestado
+app.get('/servicosPrestados/:refObra', async(req, res)=>{
+  try{
+    const {refObra} = req.params;
+    const getServicoPrestado = await ServicosPrestados.find({ refObra: refObra }).sort({createdAt: -1})
+    .populate({
+      path: 'refObra',
+      select: 'refObra'
+    })
+    .populate({
+      path: 'servicoPrestado',
+      select: 'nomeServico',
+    })
+    .exec()
+    res.status(200).json({ getServicoPrestado: getServicoPrestado });
+  }catch{
+    res.status(200).json('Erro ao buscar Serviços prestados');
+  }
+})
+
+//Delete Servico
+app.delete('/deleteServicoPrestado/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    console.log(req.body)
+    const entregarelacionada = await EntregaServico.findOne({servicoObra: id})
+
+    if(entregarelacionada){
+      return res.json('Este serviço esta relacionado a uma entrega e não pode ser apagado!')
+    }
+
+    await ServicosPrestados.findByIdAndDelete((id));
+    res.status(204).json({ message: "Item apagado com sucesso" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send('Error deleting item');
+  }
+})
+
 
 //Etapas
 const Etapas = require('./models/Etapas');
@@ -396,11 +463,28 @@ app.get('/refEtapas/:refEtapa', async (req, res) => {
   }
 })
 
+//pega etapa pelo id
+app.get('/refEtapa/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const etapa = await Etapas.findById({ _id: id })
+    res.status(200).json({ etapa: etapa })
+  } catch {
+    res.status(404).json('Nenhum dado cadastrado!')
+  }
+})
+
 //delete etapas
 
 app.delete('/deleteEtapa/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const realservicoprestado = await EntregaServico.findOne({etapaEntregue: id})
+
+    if(realservicoprestado){
+      return res.json('Este item esta relacionado alguma entrega de serviço e não pode ser apagado!')
+    }
+
     await Etapas.findByIdAndDelete((id));
     res.status(204).json({ message: "Item apagado com sucesso" });
   } catch (error) {
@@ -452,9 +536,10 @@ const Meta = require('./models/meta')
 
 app.post('/meta', async (req, res) => {
   try {
-    const { meta, metaData } = req.body;
+    const { meta, diasUteis, metaData } = req.body;
     const newMeta = new Meta({
       meta,
+      diasUteis,
       metaData,
     });
     await newMeta.save();
@@ -479,7 +564,7 @@ app.get('/meta', async (req, res) => {
 
 app.put('/meta/:id', async (req, res) => {
   const { id } = req.params;
-  const { meta, metaData } = req.body;
+  const { meta, diasUteis, metaData } = req.body;
 
   try {
     const atualizaMeta = await Meta.findById(id);
@@ -487,6 +572,7 @@ app.put('/meta/:id', async (req, res) => {
       return res.status(404).json({ message: 'Meta não encontrada' });
     }
     atualizaMeta.meta = meta;
+    atualizaMeta.diasUteis = diasUteis;
     atualizaMeta.metaData = metaData;
     await atualizaMeta.save();
     res.status(200).json({ message: 'Meta atualizada com sucesso' });
@@ -519,10 +605,10 @@ app.post('/metaObra', async (req, res) => {
 app.get('/metaObra/:relObra', async (req, res) => {
   try {
     const { relObra } = req.params;
-    const metaobra = await MetaObra.find({ relObra: relObra }).sort({ createdAt: 1 });
-    res.json({ metaObra: metaobra });
+    const metaObra = await MetaObra.find({ relObra: relObra });
+    res.status(200).json({ metaObra: metaObra });
   } catch {
-    res.json({ message: 'Erro' })
+    res.status(500).json({ message: 'Erro' })
   }
 })
 
@@ -596,4 +682,3 @@ app.put('/metaUser/:id', async (req, res) => {
 });
 
 //Config
-

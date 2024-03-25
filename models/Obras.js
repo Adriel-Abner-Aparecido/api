@@ -7,8 +7,6 @@ const Obra = mongoose.model('obras', new mongoose.Schema({
     numeroRua: String,
     complementoObra: String,
     tipoObra: String,
-    servicoPrestado: String,
-    precoServico: String,
     descricaoObra: String,
 },
 {timestamps:true}),

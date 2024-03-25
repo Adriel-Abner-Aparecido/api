@@ -6,7 +6,7 @@ const Etapas = new mongoose.model('etapas', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'servicos'
     },
-    tempoExecucao: String,
+    tempoExecucao: Number,
 },
 {timestamps: true})
 ) 

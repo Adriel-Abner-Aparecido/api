@@ -16,7 +16,7 @@ app.use(cors())
 const User = require('./models/Users')
 
 mongoose.connect(`${process.env.MONGODB_URL}`).then(() => {
-  
+
   app.listen(3000)
   console.log("Conectou ao banco de dados!")
 }).catch((err) => console.log(err))
@@ -25,7 +25,7 @@ mongoose.connect(`${process.env.MONGODB_URL}`).then(() => {
 app.post('/cadastro', async (req, res) => {
   try {
 
-    const { nomeUsuario, nomeCompleto, emailUsuario, senhaUsuario, confirmaSenha, nivelUsuario } = req.body;
+    const { nomeUsuario, nomeCompleto, emailUsuario, senhaUsuario, confirmaSenha, nivelUsuario, funcaoUser } = req.body;
     const existingUser = await User.findOne({ emailUsuario });
 
     if (!nomeUsuario) {
@@ -64,6 +64,7 @@ app.post('/cadastro', async (req, res) => {
       salt,
       senhaUsuario: passwordHash,
       confirmaSenha,
+      funcaoUser,
     });
 
     // Salva o novo usuário no banco de dados
@@ -105,7 +106,7 @@ const Obra = require('./models/Obras')
 
 app.post('/cadastroObras', async (req, res) => {
   try {
-    const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, servicoPrestado, precoServico, descricaoObra } = req.body;
+    const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, descricaoObra } = req.body;
 
     const newObra = new Obra({
       nomeObra,
@@ -114,8 +115,6 @@ app.post('/cadastroObras', async (req, res) => {
       numeroRua,
       complementoObra,
       tipoObra,
-      servicoPrestado,
-      precoServico,
       descricaoObra,
     });
 
@@ -216,14 +215,14 @@ app.get('/servicos', async (req, res) => {
 app.delete('/deleteServico/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const reletapa = await Etapas.findOne({ refEtapa: id});
-    const realservicoprestado = await ServicosPrestados.findOne({servicoPrestado: id});
+    const reletapa = await Etapas.findOne({ refEtapa: id });
+    const realservicoprestado = await ServicosPrestados.findOne({ servicoPrestado: id });
 
-    if(reletapa){
+    if (reletapa) {
       return res.json('Este item esta relacionado com alguma etapa, apague a etapa primeiro!');
     }
 
-    if(realservicoprestado){
+    if (realservicoprestado) {
       return res.json('Este item esta relacionado com alguma serviço prestado e nao pode ser apagado!');
     }
 
@@ -242,7 +241,7 @@ const EntregaServico = require('./models/Entregas');
 app.post('/entregaServico', async (req, res) => {
   try {
     const { refUsuario, refObra, blocoObra, servicoObra, unidadeObra, etapaEntregue, statusEntrega } = req.body;
-
+    
     const entregaServico = new EntregaServico({
       refUsuario,
       refObra,
@@ -264,7 +263,7 @@ app.post('/entregaServico', async (req, res) => {
 
 app.get('/entregas', async (req, res) => {
   try {
-    const entregas = await EntregaServico.find().sort({createdAt: -1})
+    const entregas = await EntregaServico.find().sort({ updatedAt: -1 })
       .populate({
         path: 'refUsuario',
         select: 'nomeCompleto',
@@ -287,7 +286,7 @@ app.get('/entregas', async (req, res) => {
       })
       .exec();
     res.json({ entregaServico: entregas });
-  } catch(err) {
+  } catch (err) {
     res.status(500).json({ message: "Erro", err });
   }
 })
@@ -298,38 +297,6 @@ app.get('/entregaServico/:refUsuario', async (req, res) => {
   try {
     const { refUsuario } = req.params;
     const entregas = await EntregaServico.find({ refUsuario: refUsuario }).sort({ createdAt: -1 })
-    .populate({
-      path: 'refUsuario',
-      select: 'nomeCompleto',
-    })
-    .populate({
-      path: 'refObra',
-      select: 'nomeObra',
-    })
-    .populate({
-      path: 'blocoObra',
-      select: 'numeroBloco',
-    })
-    .populate({
-      path: 'servicoObra',
-      select: 'nomeServico',
-    })
-    .populate({
-      path: 'etapaEntregue',
-      select: 'nomeEtapa',
-    })
-    .exec();
-    res.json({ entregaServico: entregas });
-  } catch (error) {
-    res.json({ message: "Erro" });
-  }
-})
-
-//Get entregas por obra
-app.get('/entregaServicoObra/:refObra', async (req, res) => {
-  try {
-    const { refObra } = req.params;
-    const entregas = await EntregaServico.find({ refObra: refObra }).sort({createdAt: -1})
       .populate({
         path: 'refUsuario',
         select: 'nomeCompleto',
@@ -352,17 +319,70 @@ app.get('/entregaServicoObra/:refObra', async (req, res) => {
       })
       .exec();
     res.json({ entregaServico: entregas });
-  } catch(err) {
+  } catch (error) {
+    res.json({ message: "Erro" });
+  }
+})
+
+//Get entregas por obra
+app.get('/entregaServicoObra/:refObra', async (req, res) => {
+  try {
+    const { refObra } = req.params;
+    const entregas = await EntregaServico.find({ refObra: refObra }).sort({ createdAt: -1 })
+      .populate({
+        path: 'refUsuario',
+        select: 'nomeCompleto',
+      })
+      .populate({
+        path: 'refObra',
+        select: 'nomeObra',
+      })
+      .populate({
+        path: 'blocoObra',
+        select: 'numeroBloco',
+      })
+      .populate({
+        path: 'servicoObra',
+        select: 'nomeServico',
+      })
+      .populate({
+        path: 'etapaEntregue',
+        select: 'nomeEtapa',
+      })
+      .exec();
+    res.json({ entregaServico: entregas });
+  } catch (err) {
     res.status(500).json({ message: "Erro", err });
+  }
+})
+
+//Atualiza Status do serviço
+app.put('/atualizaStatusEntrega/:id', async (req, res) => {
+  const { id } = req.params;
+  const { statusEntrega } = req.body;
+
+  try {
+    const atualizaStatus = await EntregaServico.findById(id);
+    
+    if (!atualizaStatus) {
+      return res.status(404).json({ message: 'Entrega não encontrada' });
+    }
+
+    atualizaStatus.statusEntrega = statusEntrega;
+    await atualizaStatus.save();
+    res.status(200).json({ message: 'Dados atualizados com sucesso' });
+  } catch(error){
+    console.error('erro', error)
+    res.status(500).json({ message: 'Erro ao atualizar a meta' });
   }
 })
 
 //servico prestado
 const ServicosPrestados = require('./models/ServicosPrestados');
 
-app.post('/servicoPrestado', async(req, res)=>{
-  try{
-    const { refObra, servicoPrestado, valoraReceber, valoraPagar} = req.body;
+app.post('/servicoPrestado', async (req, res) => {
+  try {
+    const { refObra, servicoPrestado, valoraReceber, valoraPagar } = req.body;
     const newServicoPrestado = new ServicosPrestados({
       refObra,
       servicoPrestado,
@@ -377,21 +397,21 @@ app.post('/servicoPrestado', async(req, res)=>{
 })
 
 //Get servico Prestado
-app.get('/servicosPrestados/:refObra', async(req, res)=>{
-  try{
-    const {refObra} = req.params;
-    const getServicoPrestado = await ServicosPrestados.find({ refObra: refObra }).sort({createdAt: -1})
-    .populate({
-      path: 'refObra',
-      select: 'refObra'
-    })
-    .populate({
-      path: 'servicoPrestado',
-      select: 'nomeServico',
-    })
-    .exec()
+app.get('/servicosPrestados/:refObra', async (req, res) => {
+  try {
+    const { refObra } = req.params;
+    const getServicoPrestado = await ServicosPrestados.find({ refObra: refObra }).sort({ createdAt: -1 })
+      .populate({
+        path: 'refObra',
+        select: 'refObra'
+      })
+      .populate({
+        path: 'servicoPrestado',
+        select: 'nomeServico',
+      })
+      .exec()
     res.status(200).json({ getServicoPrestado: getServicoPrestado });
-  }catch{
+  } catch {
     res.status(200).json('Erro ao buscar Serviços prestados');
   }
 })
@@ -400,14 +420,6 @@ app.get('/servicosPrestados/:refObra', async(req, res)=>{
 app.delete('/deleteServicoPrestado/:id', async (req, res) => {
   try {
     const { id } = req.params;
-
-    console.log(req.body)
-    const entregarelacionada = await EntregaServico.findOne({servicoObra: id})
-
-    if(entregarelacionada){
-      return res.json('Este serviço esta relacionado a uma entrega e não pode ser apagado!')
-    }
-
     await ServicosPrestados.findByIdAndDelete((id));
     res.status(204).json({ message: "Item apagado com sucesso" });
   } catch (error) {
@@ -441,11 +453,11 @@ app.post('/cadastroEtapa', async (req, res) => {
 app.get('/etapas', async (req, res) => {
   try {
     const etapas = await Etapas.find().sort({ createdAt: -1 })
-    .populate({
-      path: 'refEtapa',
-      select: 'nomeServico',
-    })
-    .exec();
+      .populate({
+        path: 'refEtapa',
+        select: 'nomeServico',
+      })
+      .exec();
     res.json({ etapas: etapas });
   } catch {
     res.status(500).json({ message: "Erro" });
@@ -479,9 +491,9 @@ app.get('/refEtapa/:id', async (req, res) => {
 app.delete('/deleteEtapa/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const realservicoprestado = await EntregaServico.findOne({etapaEntregue: id})
+    const realservicoprestado = await EntregaServico.findOne({ etapaEntregue: id })
 
-    if(realservicoprestado){
+    if (realservicoprestado) {
       return res.json('Este item esta relacionado alguma entrega de serviço e não pode ser apagado!')
     }
 

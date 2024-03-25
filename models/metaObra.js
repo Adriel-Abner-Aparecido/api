@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const MetaObra = new mongoose.model('metaobra', new mongoose.Schema({
-    valorMeta: String,
+    valorMeta: Number,
     relObra: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'obras'

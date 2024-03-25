@@ -14,6 +14,7 @@ const User = mongoose.model('users', new mongoose.Schema ({
       type: String,
       default: 'GTEQ Gestão e Construção'
     },
+    funcaoUser: String,
   },
   {timestamps: true}),
   );

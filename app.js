@@ -210,6 +210,38 @@ app.get('/servicos', async (req, res) => {
   }
 })
 
+
+//Pega servico pelo ID
+app.get('/servico/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const servico = await Servicos.findById({_id: id})
+    res.status(200).json({ servico: servico })
+  } catch(error){
+    res.status(500).json('Erro', error)
+  }
+})
+
+
+//Atualiza Serviço
+app.put('/atualizaServico/:id', async(req,res)=>{
+  try{
+    const {id} = req.params;
+    const {nomeServico} = req.body;
+
+    const atualizaServico = await Servicos.findById(id);
+
+    if(!atualizaServico){
+      res.status(404).json('Servico nao encontrado!')
+    }
+
+    atualizaServico.nomeServico = nomeServico;
+    atualizaServico.save()
+    res.status(200).json('Serviço atualizado!')
+  } catch(error){
+    res.status(500).json('Erro', error)
+  }
+})
 //delete Servico
 
 app.delete('/deleteServico/:id', async (req, res) => {
@@ -241,7 +273,7 @@ const EntregaServico = require('./models/Entregas');
 app.post('/entregaServico', async (req, res) => {
   try {
     const { refUsuario, refObra, blocoObra, servicoObra, unidadeObra, etapaEntregue, statusEntrega } = req.body;
-    
+
     const entregaServico = new EntregaServico({
       refUsuario,
       refObra,
@@ -363,7 +395,7 @@ app.put('/atualizaStatusEntrega/:id', async (req, res) => {
 
   try {
     const atualizaStatus = await EntregaServico.findById(id);
-    
+
     if (!atualizaStatus) {
       return res.status(404).json({ message: 'Entrega não encontrada' });
     }
@@ -371,7 +403,7 @@ app.put('/atualizaStatusEntrega/:id', async (req, res) => {
     atualizaStatus.statusEntrega = statusEntrega;
     await atualizaStatus.save();
     res.status(200).json({ message: 'Dados atualizados com sucesso' });
-  } catch(error){
+  } catch (error) {
     console.error('erro', error)
     res.status(500).json({ message: 'Erro ao atualizar a meta' });
   }
@@ -480,9 +512,37 @@ app.get('/refEtapa/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const etapa = await Etapas.findById({ _id: id })
+      .populate({
+        path: 'refEtapa',
+        select: 'nomeServico',
+      })
+      .exec();
     res.status(200).json({ etapa: etapa })
   } catch {
     res.status(404).json('Nenhum dado cadastrado!')
+  }
+})
+
+//Atualiza Etapa
+app.put('/atualizaEtapa/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nomeEtapa, refEtapa, tempoExecucao } = req.body;
+
+  try {
+    const atualizaEtapa = await Etapas.findById(id);
+
+    if (!atualizaEtapa) {
+      return res.status(404).json({ message: 'Entrega não encontrada' });
+    }
+
+    atualizaEtapa.nomeEtapa = nomeEtapa;
+    atualizaEtapa.refEtapa = refEtapa;
+    atualizaEtapa.tempoExecucao = tempoExecucao;
+
+    await atualizaEtapa.save();
+    res.status(200).json('Atualizado com Sucesso')
+  } catch (error) {
+    res.status(500).json('Erro', error)
   }
 })
 

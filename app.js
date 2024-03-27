@@ -25,7 +25,7 @@ mongoose.connect(`${process.env.MONGODB_URL}`).then(() => {
 app.post('/cadastro', async (req, res) => {
   try {
 
-    const { nomeUsuario, nomeCompleto, emailUsuario, senhaUsuario, confirmaSenha, nivelUsuario, funcaoUser } = req.body;
+    const { nomeUsuario, nomeCompleto, emailUsuario, senhaUsuario, confirmaSenha, nivelUsuario, funcaoUsuario } = req.body;
     const existingUser = await User.findOne({ emailUsuario });
 
     if (!nomeUsuario) {
@@ -64,7 +64,7 @@ app.post('/cadastro', async (req, res) => {
       salt,
       senhaUsuario: passwordHash,
       confirmaSenha,
-      funcaoUser,
+      funcaoUsuario,
     });
 
     // Salva o novo usuário no banco de dados
@@ -97,6 +97,29 @@ app.get('/usuario/:id', async (req, res) => {
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Erro" });
+  }
+})
+
+//Atualiza Usuario
+app.put('/atualizaUsuario/:id', async (req, res)=>{
+  try{
+    const {id} = req.params;
+    const { nomeUsuario, nomeCompleto, emailUsuario, nivelUsuario, funcaoUsuario } = req.body;
+
+    const atualizaUsuario = await User.findById(id);
+    if(!atualizaUsuario){
+      return res.status(404).json('Usuario não encontrado');
+    }
+
+    atualizaUsuario.nomeUsuario = nomeUsuario;
+    atualizaUsuario.nomeCompleto = nomeCompleto;
+    atualizaUsuario.emailUsuario = emailUsuario;
+    atualizaUsuario.nivelUsuario = nivelUsuario;
+    atualizaUsuario.funcaoUsuario = funcaoUsuario;
+    atualizaUsuario.save();
+    res.status(200).json('Atualizado com sucesso')
+  }catch{
+    res.status(500).json('Erro interno do servidor!')
   }
 })
 
@@ -180,6 +203,32 @@ app.get('/obra/:id', async (req, res) => {
   } catch (error) {
     console.error(error)
     res.status(500).json({ message: "Erro" });
+  }
+})
+
+//Atualiza Obra
+app.put('/atualizaObra/:id', async (req, res)=>{
+  try{
+    const {id} = req.params;
+    const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, descricaoObra} = req.body;
+
+    const atualizaObra = await Obra.findById(id);
+    
+    if(!atualizaObra){
+      return res.status(404).json('Obra não cadastrada')
+    }
+
+    atualizaObra.nomeObra = nomeObra;
+    atualizaObra.enderecoObra = enderecoObra;
+    atualizaObra.cidadeObra = cidadeObra;
+    atualizaObra.numeroRua = numeroRua;
+    atualizaObra.complementoObra = complementoObra;
+    atualizaObra.tipoObra = tipoObra;
+    atualizaObra.descricaoObra = descricaoObra;
+    atualizaObra.save();
+    res.status(200).json('Obra atualizada!')
+  } catch(error){
+    res.status(500).json(error)
   }
 })
 

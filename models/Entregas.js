@@ -15,7 +15,11 @@ const EntregaServico = new mongoose.model('entregaservico', new mongoose.Schema(
     },
     servicoObra: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'servicos'
+        ref: 'servicosprestados'
+    },
+    refServico: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'servicosprestados'
     },
     unidadeObra: Number,
     etapaEntregue: {

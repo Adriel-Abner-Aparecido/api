@@ -321,13 +321,13 @@ const EntregaServico = require('./models/Entregas');
 
 app.post('/entregaServico', async (req, res) => {
   try {
-    const { refUsuario, refObra, blocoObra, servicoObra, unidadeObra, etapaEntregue, statusEntrega } = req.body;
-
+    const { refUsuario, refObra, blocoObra, servicoObra, refServico, unidadeObra, etapaEntregue, statusEntrega } = req.body;
     const entregaServico = new EntregaServico({
       refUsuario,
       refObra,
       blocoObra,
       servicoObra,
+      refServico,
       unidadeObra,
       etapaEntregue,
       statusEntrega,
@@ -359,7 +359,11 @@ app.get('/entregas', async (req, res) => {
       })
       .populate({
         path: 'servicoObra',
-        select: 'nomeServico',
+        select: 'servicosPrestado',
+      })
+      .populate({
+        path: 'servicoObra',
+        select: 'valoraReceber',
       })
       .populate({
         path: 'etapaEntregue',
@@ -477,6 +481,26 @@ app.post('/servicoPrestado', async (req, res) => {
   }
 })
 
+app.get('/servicoPrestado/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const servico = await ServicosPrestados.findById(id)
+    .populate({
+      path: 'refObra',
+      select: 'refObra'
+    })
+    .populate({
+      path: 'servicoPrestado',
+      select: 'nomeServico',
+    })
+    .exec();
+    res.status(200).json({ servico: servico })
+  } catch (error){
+    console.error(error)
+    res.status(404).json('Nenhum dado cadastrado!')
+  }
+})
+
 //Get servico Prestado
 app.get('/servicosPrestados/:refObra', async (req, res) => {
   try {
@@ -497,11 +521,12 @@ app.get('/servicosPrestados/:refObra', async (req, res) => {
   }
 })
 
+
 //Delete Servico
 app.delete('/deleteServicoPrestado/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    await ServicosPrestados.findByIdAndDelete((id));
+    await ServicosPrestados.findByIdAndDelete(id);
     res.status(204).json({ message: "Item apagado com sucesso" });
   } catch (error) {
     console.error(error);

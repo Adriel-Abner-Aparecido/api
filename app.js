@@ -406,6 +406,10 @@ app.get('/entregaServico/:refUsuario', async (req, res) => {
         select: 'nomeServico',
       })
       .populate({
+        path: 'servicoObra',
+        select: 'valoraReceber'
+      })
+      .populate({
         path: 'etapaEntregue',
         select: 'nomeEtapa',
       })

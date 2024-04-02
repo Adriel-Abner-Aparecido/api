@@ -30,6 +30,7 @@ const EntregaServico = new mongoose.model('entregaservico', new mongoose.Schema(
         type: String,
         default: 'pendente',
     },
+    percentual: Number,
 },
 {timestamps: true}
 ))

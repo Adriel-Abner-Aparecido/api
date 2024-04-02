@@ -1,7 +1,7 @@
 const mongoose = require('mongoose')
 
 const Meta = new mongoose.model('meta', new mongoose.Schema({
-    meta: Number,
+    valorMeta: Number,
     diasUteis: Number,
     metaData: String,
 },

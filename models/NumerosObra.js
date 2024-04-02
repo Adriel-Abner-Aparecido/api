@@ -5,7 +5,7 @@ const NumerosObra = mongoose.model('numerosobra', new mongoose.Schema({
         type: mongoose.Schema.Types.ObjectId,
         ref: 'obras'
     },
-    numeroBloco: Number,
+    numeroBloco: String,
     numeroAndares: Number,
     numeroUnidades: Number,
 },

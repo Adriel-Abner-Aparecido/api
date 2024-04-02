@@ -156,6 +156,12 @@ app.post('/cadastroNumerosObra', async (req, res) => {
   try {
     const { refObra, numeroBloco, numeroAndares, numeroUnidades } = req.body;
 
+    const conferenumero = await NumerosObra.findOne({ refObra: refObra, numeroBloco: numeroBloco })
+
+    if(conferenumero){
+      return res.status(400).json('Bloco ja cadastrado!')
+    }
+
     const newNumerosObra = new NumerosObra({
       refObra,
       numeroBloco,
@@ -321,7 +327,7 @@ const EntregaServico = require('./models/Entregas');
 
 app.post('/entregaServico', async (req, res) => {
   try {
-    const { refUsuario, refObra, blocoObra, servicoObra, refServico, unidadeObra, etapaEntregue, statusEntrega } = req.body;
+    const { refUsuario, refObra, blocoObra, servicoObra, refServico, unidadeObra, etapaEntregue, statusEntrega, percentual } = req.body;
     const entregaServico = new EntregaServico({
       refUsuario,
       refObra,
@@ -331,6 +337,7 @@ app.post('/entregaServico', async (req, res) => {
       unidadeObra,
       etapaEntregue,
       statusEntrega,
+      percentual,
     });
     await entregaServico.save()
     res.status(201).json({ message: "Serviço entregue" })
@@ -429,6 +436,10 @@ app.get('/entregaServicoObra/:refObra', async (req, res) => {
       .populate({
         path: 'servicoObra',
         select: 'nomeServico',
+      })
+      .populate({
+        path: 'servicoObra',
+        select: 'valoraReceber'
       })
       .populate({
         path: 'etapaEntregue',
@@ -682,9 +693,9 @@ const Meta = require('./models/meta')
 
 app.post('/meta', async (req, res) => {
   try {
-    const { meta, diasUteis, metaData } = req.body;
+    const { valorMeta, diasUteis, metaData } = req.body;
     const newMeta = new Meta({
-      meta,
+      valorMeta,
       diasUteis,
       metaData,
     });
@@ -710,14 +721,14 @@ app.get('/meta', async (req, res) => {
 
 app.put('/meta/:id', async (req, res) => {
   const { id } = req.params;
-  const { meta, diasUteis, metaData } = req.body;
+  const { valorMeta, diasUteis, metaData } = req.body;
 
   try {
     const atualizaMeta = await Meta.findById(id);
     if (!atualizaMeta) {
       return res.status(404).json({ message: 'Meta não encontrada' });
     }
-    atualizaMeta.meta = meta;
+    atualizaMeta.valorMeta = valorMeta;
     atualizaMeta.diasUteis = diasUteis;
     atualizaMeta.metaData = metaData;
     await atualizaMeta.save();

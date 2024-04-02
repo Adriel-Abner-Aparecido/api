@@ -188,6 +188,23 @@ app.get('/numerosObra/:refObra', async (req, res) => {
   }
 })
 
+//Apaga bloco obra
+app.delete('/deleteBloco/:id', async (req, res)=>{
+  try{
+    const {id} = req.params;
+    const relbloco = await NumerosObra.findById(id);
+
+    if(!relbloco){
+      return res.status(404).json('Bloco nao encontrado')
+    }
+
+    const deletebloco = await NumerosObra.findByIdAndDelete(id);
+    res.status(200).json('Bloco apagado com sucesso.')
+  }catch(error){
+    res.status(500).json('Erro ao apagar item', error)
+  }
+})
+
 
 //get obras
 
@@ -407,7 +424,7 @@ app.get('/entregaServico/:refUsuario', async (req, res) => {
       })
       .populate({
         path: 'servicoObra',
-        select: 'valoraReceber'
+        select: 'valoraPagar',
       })
       .populate({
         path: 'etapaEntregue',

@@ -368,7 +368,7 @@ app.post('/entregaServico', async (req, res) => {
 
 app.get('/entregas', async (req, res) => {
   try {
-    const entregas = await EntregaServico.find().sort({ updatedAt: -1 })
+    const entregas = await EntregaServico.find().sort({ createdAt: -1 })
       .populate({
         path: 'refUsuario',
         select: 'nomeCompleto',

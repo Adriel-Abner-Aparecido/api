@@ -136,7 +136,7 @@ app.put('/atualizaSenha/:id', async (req, res) => {
     const { senhaUsuario, confirmaSenha } = req.body;
 
     const atualizaUsuario = await User.findById(id);
-    
+
     if (!atualizaUsuario) {
       return res.status(404).json('Usuario não encontrado');
     }
@@ -895,7 +895,7 @@ app.put('/metaUser/:id', async (req, res) => {
 });
 
 //Config
-const Avatar = require('./models/avatar');
+const Avatar = require('./models/avatar')
 
 // Configuração do multer para salvar arquivos na pasta 'imagens'
 const storage = multer.diskStorage({
@@ -921,19 +921,62 @@ const fileFilter = (req, file, cb) => {
 const upload = multer({ storage: storage, fileFilter: fileFilter });
 
 // Rota para o upload de arquivos
-app.post('/avatar', upload.single('file'), (req, res) => {
+app.post('/avatar', upload.single('file'), async (req, res) => {
   const userId = req.body.userId;
+
   if (!req.file) {
     return res.status(400).json({ message: 'Por favor, forneça um arquivo Valido.' });
   }
+
   console.log(userId)
   // Faça algo com o filePath e userId, como salvar no banco de dados
-
   const newFileName = userId + path.extname(req.file.originalname);
-  fs.renameSync(req.file.path, 'imagens/' + newFileName);
+  const filePath = 'imagens/' + newFileName;
 
-  res.status(200).json({ message: 'Arquivo enviado com sucesso.' });
+  try {
+    // Verificar se já existe um avatar com o mesmo userId
+    const existingAvatar = await Avatar.findOne({ userId });
+
+    if (existingAvatar) {
+      // Se o avatar existir, apaga o arquivo associado a ele
+      const existingFilePath = 'imagens/' + existingAvatar.avatar;
+      if (fs.existsSync(existingFilePath)) {
+        fs.unlinkSync(existingFilePath);
+      }
+
+      // Atualiza o avatar existente com o novo arquivo
+      existingAvatar.avatar = newFileName;
+      await existingAvatar.save();
+    } else {
+      // Se não houver avatar existente, cria um novo
+      const newAvatar = new Avatar({
+        userId,
+        avatar: newFileName,
+      });
+      await newAvatar.save();
+    }
+
+    // Move o novo arquivo
+    fs.renameSync(req.file.path, filePath);
+
+    res.status(200).json({ message: 'Arquivo enviado com sucesso.' });
+  } catch (error) {
+    console.error('Erro ao processar avatar:', error);
+    res.status(500).json({ message: 'Erro ao processar avatar.' });
+  }
 });
 
+app.get('/avatar/:id', async (req, res)=>{
+  try{
+    const {id} = req.params
+    
+    const avatar = await Avatar.findOne({ userId: id })
+    res.json({ avatar: avatar})
+
+  } catch{
+    res.status(404).json('Imagen nao encontrada')
+  }
+})
+
 // Servindo arquivos estáticos da pasta 'imagens'
-app.use('/imagens', express.static(path.join(__dirname, 'imagens')));
+app.use('/imagens', express.static('imagens'));

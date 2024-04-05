@@ -4,11 +4,16 @@ const mongoose = require('mongoose')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
 const cors = require('cors')
+const multer = require('multer');
+const path = require('path');
+const bodyParser = require('body-parser');
+const fs = require('fs');
 
 const app = express()
 
 //Config Json response
 app.use(express.json())
+app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors())
 
 
@@ -52,8 +57,8 @@ app.post('/cadastro', async (req, res) => {
       return res.status(400).json({ message: 'Este email já está cadastrado.' });
     }
 
-    const salt = await bcrypt.genSaltSync(12)
-    const passwordHash = await bcrypt.hashSync(senhaUsuario, salt)
+    const salt = bcrypt.genSaltSync(12)
+    const passwordHash = bcrypt.hashSync(senhaUsuario, salt)
 
     // Cria um novo usuário
     const newUser = new User({
@@ -101,13 +106,13 @@ app.get('/usuario/:id', async (req, res) => {
 })
 
 //Atualiza Usuario
-app.put('/atualizaUsuario/:id', async (req, res)=>{
-  try{
-    const {id} = req.params;
-    const { nomeUsuario, nomeCompleto, emailUsuario, nivelUsuario, funcaoUsuario } = req.body;
+app.put('/atualizaUsuario/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nomeUsuario, nomeCompleto, emailUsuario, nivelUsuario, funcaoUsuario, status } = req.body;
 
     const atualizaUsuario = await User.findById(id);
-    if(!atualizaUsuario){
+    if (!atualizaUsuario) {
       return res.status(404).json('Usuario não encontrado');
     }
 
@@ -116,9 +121,38 @@ app.put('/atualizaUsuario/:id', async (req, res)=>{
     atualizaUsuario.emailUsuario = emailUsuario;
     atualizaUsuario.nivelUsuario = nivelUsuario;
     atualizaUsuario.funcaoUsuario = funcaoUsuario;
+    atualizaUsuario.status = status;
     atualizaUsuario.save();
     res.status(200).json('Atualizado com sucesso')
-  }catch{
+  } catch {
+    res.status(500).json('Erro interno do servidor!')
+  }
+})
+
+//atualiza Senha
+app.put('/atualizaSenha/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { senhaUsuario, confirmaSenha } = req.body;
+
+    const atualizaUsuario = await User.findById(id);
+    
+    if (!atualizaUsuario) {
+      return res.status(404).json('Usuario não encontrado');
+    }
+
+    if (senhaUsuario !== confirmaSenha) {
+      return res.status(400).json('As senhas devem ser iguais!')
+    }
+
+    const salt = bcrypt.genSaltSync(12)
+    const passwordHash = bcrypt.hashSync(senhaUsuario, salt)
+
+    atualizaUsuario.salt = salt;
+    atualizaUsuario.senhaUsuario = passwordHash;
+    atualizaUsuario.save();
+    res.status(200).json('Atualizado com sucesso')
+  } catch {
     res.status(500).json('Erro interno do servidor!')
   }
 })
@@ -158,7 +192,7 @@ app.post('/cadastroNumerosObra', async (req, res) => {
 
     const conferenumero = await NumerosObra.findOne({ refObra: refObra, numeroBloco: numeroBloco })
 
-    if(conferenumero){
+    if (conferenumero) {
       return res.status(400).json('Bloco ja cadastrado!')
     }
 
@@ -189,18 +223,18 @@ app.get('/numerosObra/:refObra', async (req, res) => {
 })
 
 //Apaga bloco obra
-app.delete('/deleteBloco/:id', async (req, res)=>{
-  try{
-    const {id} = req.params;
+app.delete('/deleteBloco/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
     const relbloco = await NumerosObra.findById(id);
 
-    if(!relbloco){
+    if (!relbloco) {
       return res.status(404).json('Bloco nao encontrado')
     }
 
     const deletebloco = await NumerosObra.findByIdAndDelete(id);
     res.status(200).json('Bloco apagado com sucesso.')
-  }catch(error){
+  } catch (error) {
     res.status(500).json('Erro ao apagar item', error)
   }
 })
@@ -230,14 +264,14 @@ app.get('/obra/:id', async (req, res) => {
 })
 
 //Atualiza Obra
-app.put('/atualizaObra/:id', async (req, res)=>{
-  try{
-    const {id} = req.params;
-    const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, descricaoObra} = req.body;
+app.put('/atualizaObra/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nomeObra, enderecoObra, cidadeObra, numeroRua, complementoObra, tipoObra, descricaoObra } = req.body;
 
     const atualizaObra = await Obra.findById(id);
-    
-    if(!atualizaObra){
+
+    if (!atualizaObra) {
       return res.status(404).json('Obra não cadastrada')
     }
 
@@ -250,7 +284,7 @@ app.put('/atualizaObra/:id', async (req, res)=>{
     atualizaObra.descricaoObra = descricaoObra;
     atualizaObra.save();
     res.status(200).json('Obra atualizada!')
-  } catch(error){
+  } catch (error) {
     res.status(500).json(error)
   }
 })
@@ -287,30 +321,30 @@ app.get('/servicos', async (req, res) => {
 app.get('/servico/:id', async (req, res) => {
   try {
     const { id } = req.params;
-    const servico = await Servicos.findById({_id: id})
+    const servico = await Servicos.findById({ _id: id })
     res.status(200).json({ servico: servico })
-  } catch(error){
+  } catch (error) {
     res.status(500).json('Erro', error)
   }
 })
 
 
 //Atualiza Serviço
-app.put('/atualizaServico/:id', async(req,res)=>{
-  try{
-    const {id} = req.params;
-    const {nomeServico} = req.body;
+app.put('/atualizaServico/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { nomeServico } = req.body;
 
     const atualizaServico = await Servicos.findById(id);
 
-    if(!atualizaServico){
+    if (!atualizaServico) {
       res.status(404).json('Servico nao encontrado!')
     }
 
     atualizaServico.nomeServico = nomeServico;
     atualizaServico.save()
     res.status(200).json('Serviço atualizado!')
-  } catch(error){
+  } catch (error) {
     res.status(500).json('Erro', error)
   }
 })
@@ -517,17 +551,17 @@ app.get('/servicoPrestado/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const servico = await ServicosPrestados.findById(id)
-    .populate({
-      path: 'refObra',
-      select: 'refObra'
-    })
-    .populate({
-      path: 'servicoPrestado',
-      select: 'nomeServico',
-    })
-    .exec();
+      .populate({
+        path: 'refObra',
+        select: 'refObra'
+      })
+      .populate({
+        path: 'servicoPrestado',
+        select: 'nomeServico',
+      })
+      .exec();
     res.status(200).json({ servico: servico })
-  } catch (error){
+  } catch (error) {
     console.error(error)
     res.status(404).json('Nenhum dado cadastrado!')
   }
@@ -701,9 +735,10 @@ app.post('/login', async (req, res) => {
       userId: user._id,
       nivel: user.nivelUsuario,
       userName: user.nomeUsuario,
+      status: user.status
     }
     const token = jwt.sign(usuario, 'secreto', { expiresIn: '24h' });
-    res.json({ token, nivelUsuario: usuario.nivel, userId: user._id, userName: user.nomeUsuario });
+    res.json({ token, nivelUsuario: usuario.nivel, userId: user._id, userName: user.nomeUsuario, status: user.status });
   }
 
 })
@@ -860,3 +895,45 @@ app.put('/metaUser/:id', async (req, res) => {
 });
 
 //Config
+const Avatar = require('./models/avatar');
+
+// Configuração do multer para salvar arquivos na pasta 'imagens'
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'imagens/');
+  },
+  filename: function (req, file, cb) {
+    cb(null, req.body.userId + path.extname(file.originalname));
+  }
+});
+
+// Função para filtrar os arquivos permitidos
+const fileFilter = (req, file, cb) => {
+  // Verifica se o arquivo é uma imagem
+  if (!file.mimetype.startsWith('image/')) {
+    // Rejeita o upload se não for uma imagem
+    return cb(false);
+  }
+  // Aceita o upload se for uma imagem
+  cb(null, true);
+};
+
+const upload = multer({ storage: storage, fileFilter: fileFilter });
+
+// Rota para o upload de arquivos
+app.post('/avatar', upload.single('file'), (req, res) => {
+  const userId = req.body.userId;
+  if (!req.file) {
+    return res.status(400).json({ message: 'Por favor, forneça um arquivo Valido.' });
+  }
+  console.log(userId)
+  // Faça algo com o filePath e userId, como salvar no banco de dados
+
+  const newFileName = userId + path.extname(req.file.originalname);
+  fs.renameSync(req.file.path, 'imagens/' + newFileName);
+
+  res.status(200).json({ message: 'Arquivo enviado com sucesso.' });
+});
+
+// Servindo arquivos estáticos da pasta 'imagens'
+app.use('/imagens', express.static(path.join(__dirname, 'imagens')));

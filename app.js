@@ -298,7 +298,6 @@ app.post('/cadastroServico', async (req, res) => {
     const newServicos = new Servicos({
       nomeServico,
     });
-    console.log(req.body)
     await newServicos.save();
     res.status(201).json({ message: 'Serviço cadastrado com Sucesso!' });
   } catch {
@@ -927,8 +926,6 @@ app.post('/avatar', upload.single('file'), async (req, res) => {
   if (!req.file) {
     return res.status(400).json({ message: 'Por favor, forneça um arquivo Valido.' });
   }
-
-  console.log(userId)
   // Faça algo com o filePath e userId, como salvar no banco de dados
   const newFileName = userId + path.extname(req.file.originalname);
   const filePath = 'imagens/' + newFileName;

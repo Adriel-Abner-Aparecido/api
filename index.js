@@ -7,7 +7,7 @@ const app = express();
 app.use(express.json());
 
 //Resolvendo Cors
-app.use(cors({credentials: true, origin: 'http://localhost:3001'}));
+app.use(cors({credentials: true, origin: 'https://gteq.onrender.com'}));
 
 //arquivos Publicos
 app.use(express.static('public'));

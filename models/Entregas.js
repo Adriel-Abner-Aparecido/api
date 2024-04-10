@@ -1,6 +1,9 @@
-const mongoose = require('mongoose')
+const mongoose = require('../db/conn')
+const {Schema} = mongoose
 
-const EntregaServico = new mongoose.model('entregaservico', new mongoose.Schema({
+const EntregaServico = new mongoose.model(
+    'entregaservico', 
+    new Schema({
     refUsuario: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'users'

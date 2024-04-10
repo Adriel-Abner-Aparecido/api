@@ -1,6 +1,9 @@
-const mongoose = require('mongoose')
+const mongoose = require('../db/conn')
+const {Schema} = mongoose
 
-const User = mongoose.model('users', new mongoose.Schema({
+const User = mongoose.model(
+  'users', 
+  new Schema({
   nomeUsuario: String,
   nomeCompleto: String,
   emailUsuario: String,

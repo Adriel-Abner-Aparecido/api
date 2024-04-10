@@ -1,6 +1,9 @@
-const mongoose = require('mongoose');
+const mongoose = require('../db/conn');
+const {Schema} = mongoose
 
-const Obra = mongoose.model('obras', new mongoose.Schema({
+const Obra = mongoose.model(
+    'obras', 
+    new Schema({
     nomeObra: String,
     enderecoObra: String,
     cidadeObra: String,

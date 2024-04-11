@@ -72,7 +72,7 @@ module.exports = class UserController {
     static async usuario(req, res) {
         try {
             const { id } = req.params;
-            const usuario = await User.findById(id);
+            const usuario = await User.findById(id).select("-senhaUsuario");
             res.json({ usuario: usuario });
         } catch (error) {
             console.error(error)

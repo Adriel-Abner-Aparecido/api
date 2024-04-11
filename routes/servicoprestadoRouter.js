@@ -1,10 +1,27 @@
-const router = require('express').Router()
+const router = require("express").Router();
 
-const ServicosPrestadosController = require('../controllers/servicoPrestadoController');
+const ServicosPrestadosController = require("../controllers/servicoPrestadoController");
+const checkToken = require("../helpers/check-tokken");
 
-router.post('/servicoPrestado', ServicosPrestadosController.cadastrarservicoprestado);
-router.get('/servicoPrestado/:id', ServicosPrestadosController.servicoprestado);
-router.get('/servicosPrestados/:refObra', ServicosPrestadosController.servicoprestadoobra);
-router.delete('/deleteServicoPrestado/:id', ServicosPrestadosController.deletaservicoprestado);
+router.post(
+  "/servicoPrestado",
+  checkToken,
+  ServicosPrestadosController.cadastrarservicoprestado
+);
+router.get(
+  "/servicoPrestado/:id",
+  checkToken,
+  ServicosPrestadosController.servicoprestado
+);
+router.get(
+  "/servicosPrestados/:refObra",
+  checkToken,
+  ServicosPrestadosController.servicoprestadoobra
+);
+router.delete(
+  "/deleteServicoPrestado/:id",
+  checkToken,
+  ServicosPrestadosController.deletaservicoprestado
+);
 
-module.exports = router
+module.exports = router;

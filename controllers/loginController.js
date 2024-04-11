@@ -7,9 +7,7 @@ const User = require('../models/Users');
 module.exports = class LoginController {
 
     static async login(req, res) {
-
-        console.log(req.body)
-
+        
         const { nomeUsuario, senhaUsuario } = req.body
         const user = await User.findOne({ nomeUsuario: nomeUsuario });
         const passwordHash = bcrypt.hashSync(senhaUsuario, user.salt);

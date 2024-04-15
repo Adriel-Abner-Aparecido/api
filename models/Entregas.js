@@ -1,41 +1,43 @@
-const mongoose = require('../db/conn')
-const {Schema} = mongoose
+const mongoose = require("../db/conn");
+const { Schema } = mongoose;
 
 const EntregaServico = new mongoose.model(
-    'entregaservico', 
-    new Schema({
-    refUsuario: {
+  "entregaservico",
+  new Schema(
+    {
+      refUsuario: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'users'
-    },
-    refObra: {
+        ref: "users",
+      },
+      refObra: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'obras'
-    },
-    blocoObra: {
+        ref: "obras",
+      },
+      blocoObra: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'numerosobra'
-    },
-    servicoObra: {
+        ref: "numerosobra",
+      },
+      servicoObra: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'servicosprestados'
-    },
-    refServico: {
+        ref: "servicosprestados",
+      },
+      refServico: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'servicosprestados'
-    },
-    unidadeObra: Number,
-    etapaEntregue: {
+        ref: "servicosprestados",
+      },
+      unidadeObra: Number,
+      etapaEntregue: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'etapas'
-    },
-    statusEntrega: {
+        ref: "etapas",
+      },
+      statusEntrega: {
         type: String,
-        default: 'pendente',
+        default: "pendente",
+      },
+      percentual: Number,
     },
-    percentual: Number,
-},
-{timestamps: true}
-))
+    { timestamps: true }
+  )
+);
 
 module.exports = EntregaServico;

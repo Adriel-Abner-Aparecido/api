@@ -23,6 +23,7 @@ const ServicoPrestadoRouter = require("./routes/servicoprestadoRouter");
 const EtapasRouter = require("./routes/etapasRouter");
 const MetaRouter = require("./routes/metasRouter");
 const AvatarRouter = require("./routes/avatarRouter");
+const DescontosRouter = require("./routes/descontosRouter");
 
 app.use("/usuarios", UserRoutes);
 app.use("/login", LoginRoutes);
@@ -34,6 +35,7 @@ app.use("/servicosPrestados", ServicoPrestadoRouter);
 app.use("/etapas", EtapasRouter);
 app.use("/meta", MetaRouter);
 app.use("/avatar", AvatarRouter);
+app.use("/descontos", DescontosRouter);
 
 //Porta de execução
 app.listen(3000);

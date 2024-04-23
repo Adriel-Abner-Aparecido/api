@@ -9,7 +9,7 @@ router.post(
   ServicosController.cadastrarservico
 );
 router.get("/servicos", checkToken, ServicosController.verservicos);
-router.get("/servico/:id", checkToken, ServicosController.verervico);
+router.get("/servico/:id", checkToken, ServicosController.verservico);
 router.put(
   "/atualizaServico/:id",
   checkToken,

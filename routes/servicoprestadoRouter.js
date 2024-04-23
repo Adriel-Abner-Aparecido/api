@@ -9,6 +9,11 @@ router.post(
   ServicosPrestadosController.cadastrarservicoprestado
 );
 router.get(
+  "/servicosPrestados",
+  checkToken,
+  ServicosPrestadosController.servicosprestados
+);
+router.get(
   "/servicoPrestado/:id",
   checkToken,
   ServicosPrestadosController.servicoprestado

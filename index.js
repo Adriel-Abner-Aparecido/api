@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 
@@ -7,7 +8,11 @@ const app = express();
 app.use(express.json());
 
 //Resolvendo Cors
-app.use(cors({ credentials: true, origin: "https://gteq.onrender.com" }));
+app.use(
+  cors({ credentials: true, origin: `${process.env.URL_AUTHORIZATION}` })
+);
+
+console.log(process.env.URL_AUTHORIZATION);
 
 //arquivos Publicos
 app.use(express.static("public"));
